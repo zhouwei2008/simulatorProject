@@ -31,6 +31,7 @@ public class UnionpayService {
 	private final static String SIGNMETHOD="01";
 	//系统是否开启
 	private final static boolean ISOPEN=true;
+	private final static String s="dMuq3BQS8qklsAR/W7u8rVEoSRRNUFIs0KK6b1r/lS0RkL974s5AIXPqC/bExj2jM3Z9BXA1Wjo6v7sL7k4nJ0pKtC2pGOJxyZIAp/VbtsQyo5tq4VAiq2zj19FQPw0CtHkcrBS+Mm1uJJyPp4irS0AW3dx5ySl3SdS7ohrnz2iZHamTjhEM3qQhCffNF32X5YeqKY3HU4e6+0eNdBh/EbVxIzNF+2GZU+TGv3DNc/nKbe/e2V8su80kYK0gMTsGXi5DyGIw8tlXyxsramLlWJmQZhrboGFxVw8ay/nm969fp2Nz49Xs8kD+3DsJw4DUne3QFdJK99XEmsyzm7Vo9A==";
 	
 	/**
 	 * Title: SimulatorUnionpayReturnTn<br/> 
@@ -61,11 +62,12 @@ public class UnionpayService {
 			String newSignature=newSubmitFromData.get("signature");
 			
 			UnionpayService unionpayService = new UnionpayService();
+			submitFromData.put("certId", "68759585097");
+			submitFromData.put("signature", s);
 			//验证签名是否正确 11
 			if(!oldSignature.equals(newSignature)){
 				submitFromData.put("respCode", BankReturnEnum.FAILSIGN.getResCode());
 				submitFromData.put("respMsg", BankReturnEnum.FAILSIGN.getResDesc());
-				submitFromData=SignUntil.signData(submitFromData);
 				return submitFromData;
 			}
 			//http连接异常返回空map
@@ -73,21 +75,18 @@ public class UnionpayService {
 			if("true".equals(HttpErr)){
 				Map<String,String> map=submitUrl(submitFromData,"");
 				if(map.toString().length()<=2){
-					map=SignUntil.signData(map);
 					return map;
 				}
 			}
 			//验证格式是否正确 10,是否缺少必要字段 13及交易金额是否超限33
 			newSubmitFromData=validationRequestDeposit(submitFromData,type);
 			if(newSubmitFromData.get("respCode")!=null){
-				submitFromData=SignUntil.signData(submitFromData);
 				return newSubmitFromData;
 			}
 			//验证系统是否开启 02
 			if(!ISOPEN){
 				submitFromData.put("respCode", BankReturnEnum.NOTOPEN.getResCode());
 				submitFromData.put("respMsg", BankReturnEnum.NOTOPEN.getResDesc());
-				submitFromData=SignUntil.signData(submitFromData);
 				return submitFromData;
 			}
 			//验证订单是否是处理中状态03\04\05
@@ -96,19 +95,16 @@ public class UnionpayService {
 			if("03".equals(orderStatus)){
 				submitFromData.put("respCode", BankReturnEnum.OUTTIME.getResCode());
 				submitFromData.put("respMsg", BankReturnEnum.OUTTIME.getResDesc());
-				submitFromData=SignUntil.signData(submitFromData);
 				return submitFromData;
 			}
 			if("04".equals(orderStatus)){
 				submitFromData.put("respCode", BankReturnEnum.FAILSTATUS.getResCode());
 				submitFromData.put("respMsg", BankReturnEnum.FAILSTATUS.getResDesc());
-				submitFromData=SignUntil.signData(submitFromData);
 				return submitFromData;
 			}
 			if("05".equals(orderStatus)){
 				submitFromData.put("respCode", BankReturnEnum.TRXHAND.getResCode());
 				submitFromData.put("respMsg", BankReturnEnum.TRXHAND.getResDesc());
-				submitFromData=SignUntil.signData(submitFromData);
 				return submitFromData;
 			}
 			//重复的订单，获取的tn相同
@@ -117,7 +113,6 @@ public class UnionpayService {
 				submitFromData.put("respCode", BankReturnEnum.SUCCESS.getResCode());
 				submitFromData.put("respMsg", BankReturnEnum.SUCCESS.getResDesc());
 				submitFromData.put("Tn", outOrderNo+"001");
-				submitFromData=SignUntil.signData(submitFromData);
 				return submitFromData;
 			}
 			//银行商户状态验证 31
@@ -125,7 +120,6 @@ public class UnionpayService {
 			if(!"00".equals(merStatus)){
 				submitFromData.put("respCode", BankReturnEnum.FAILMERSTATUS.getResCode());
 				submitFromData.put("respMsg", BankReturnEnum.FAILMERSTATUS.getResDesc());
-				submitFromData=SignUntil.signData(submitFromData);
 				return submitFromData;
 			}
 			//自动生成Tn
@@ -133,11 +127,9 @@ public class UnionpayService {
 			submitFromData.put("Tn", tn);
 			submitFromData.put("respCode", "00");
 			submitFromData.put("respDesc", "成功");
-			submitFromData=SignUntil.signData(submitFromData);
 		}catch(Exception e){
 			submitFromData.put("respCode", BankReturnEnum.FAILTRX.getResCode());
 			submitFromData.put("respDesc", BankReturnEnum.FAILTRX.getResDesc());
-			submitFromData=SignUntil.signData(submitFromData);
 			return submitFromData;
 		}
 		return submitFromData;
@@ -166,23 +158,22 @@ public class UnionpayService {
 			//得到新生成的验签字段
 			String newSignature=respMap.get("signature");
 			//验证签名是否正确 11
+			submitFromData.put("certId", "68759585097");
+			submitFromData.put("signature", s);
 			if(!oldSignature.equals(newSignature)){
 				respMap.put("respCode", BankReturnEnum.FAILSIGN.getResCode());
 				respMap.put("respMsg", BankReturnEnum.FAILSIGN.getResDesc());
-				respMap=SignUntil.signData(respMap);
 				return respMap;
 			}
 			//验证格式是否正确 10,是否缺少必要字段 13及交易金额是否超限33
 			respMap=validationRequestDeposit(submitFromData,type);
 			if(respMap.get("respCode")!=null){
-				respMap=SignUntil.signData(respMap);
 				return respMap;
 			}
 			//验证系统是否开启 02
 			if(!ISOPEN){
 				respMap.put("respCode", BankReturnEnum.NOTOPEN.getResCode());
 				respMap.put("respMsg", BankReturnEnum.NOTOPEN.getResDesc());
-				respMap=SignUntil.signData(respMap);
 				return respMap;
 			}
 			//验证订单是否是处理中状态03\04\05
@@ -191,19 +182,16 @@ public class UnionpayService {
 			if("03".equals(orderStatus)){
 				respMap.put("respCode", BankReturnEnum.OUTTIME.getResCode());
 				respMap.put("respMsg", BankReturnEnum.OUTTIME.getResDesc());
-				respMap=SignUntil.signData(respMap);
 				return respMap;
 			}
 			if("04".equals(orderStatus)){
 				respMap.put("respCode", BankReturnEnum.FAILSTATUS.getResCode());
 				respMap.put("respMsg", BankReturnEnum.FAILSTATUS.getResDesc());
-				respMap=SignUntil.signData(respMap);
 				return respMap;
 			}
 			if("05".equals(orderStatus)){
 				respMap.put("respCode", BankReturnEnum.TRXHAND.getResCode());
 				respMap.put("respMsg", BankReturnEnum.TRXHAND.getResDesc());
-				respMap=SignUntil.signData(respMap);
 				return respMap;
 			}
 			//验证订单是否重复 12
@@ -211,7 +199,6 @@ public class UnionpayService {
 			if(haveOutOrderNo.indexOf(submitFromData.get("orderId"))>=0){
 				respMap.put("respCode", BankReturnEnum.REPEATTRX.getResCode());
 				respMap.put("respMsg", BankReturnEnum.REPEATTRX.getResDesc());
-				respMap=SignUntil.signData(respMap);
 				return respMap;
 			}
 			//银行商户状态验证 31
@@ -219,7 +206,6 @@ public class UnionpayService {
 			if(!"00".equals(merStatus)){
 				respMap.put("respCode", BankReturnEnum.FAILMERSTATUS.getResCode());
 				respMap.put("respMsg", BankReturnEnum.FAILMERSTATUS.getResDesc());
-				respMap=SignUntil.signData(respMap);
 				return respMap;
 			}
 			//超出银行受理时间 39
@@ -229,7 +215,6 @@ public class UnionpayService {
 			if(day>30){
 				respMap.put("respCode", BankReturnEnum.OUTDATETIME.getResCode());
 				respMap.put("respMsg", BankReturnEnum.OUTDATETIME.getResDesc());
-				respMap=SignUntil.signData(respMap);
 				return respMap;
 			}
 			respMap.put("respCode", "00");
@@ -239,7 +224,6 @@ public class UnionpayService {
 		}catch(Exception e){
 			respMap.put("respCode", BankReturnEnum.FAILTRX.getResCode());
 			respMap.put("respMsg", BankReturnEnum.FAILTRX.getResDesc());
-			respMap=SignUntil.signData(respMap);
 			return respMap;
 		}
 		return respMap;
