@@ -61,7 +61,7 @@ public class GetHtf extends HttpServlet {
 					respMap = htfService.getHtfVerifyCode(respMap);
 				}
 				if("04".equals(respMap.get("jrnType"))){//04:申购
-					respMap = htfService.getHtfQuickChannelSign(respMap);
+					respMap = htfService.getHtfCharge(respMap);
 				}
 				if("05".equals(respMap.get("jrnType"))){// 05:普通赎回
 					respMap = htfService.getHtfRedeem(respMap);

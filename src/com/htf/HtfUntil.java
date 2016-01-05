@@ -8,6 +8,8 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -44,6 +46,8 @@ public class HtfUntil {
         // 获取HTF请求报文
         String respStr = htf.getHTFRequstBody(jsonObject.toString());
         System.out.println("respStr is "+respStr);
+        
+        System.out.println("11111111"+getAfterDay(new Date()));
 
 	}
 	
@@ -184,4 +188,21 @@ public class HtfUntil {
         }
         return plainText;
     }
+	
+	/**
+	 * Title: getAfterDay<br/> 
+	 * Description:获取当前时间的后一天时间<br/> 
+	 * Company: gigold<br/> 
+	 *@author: zhouyong-pc
+	 *@date : 2016-1-5 下午2:01:47
+	 *@parameter:
+		 **/
+    @SuppressWarnings("unused")
+	private static Date  getAfterDay(Date date){  
+    	Calendar cl = Calendar.getInstance();   
+    	cl.setTime(date);
+    	cl.add(Calendar.DAY_OF_MONTH, 1);
+        Date day=cl.getTime();
+        return day;
+    }  
 }

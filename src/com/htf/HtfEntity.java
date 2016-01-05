@@ -71,6 +71,11 @@ public class HtfEntity {
 	//原请求流水号
 	@Validator(regx="^[A-Za-z0-9]+$", maxsize=32,nullable = false)
 	private String ref_transaction_id;
+	//金额
+	@Validator(regx="^(([1-9]\\d{0,9})|0)(\\.\\d{1,2})?$", nullable = false, maxsize=16)
+	private String total_fee;
+	//币种
+	private int fee_type;
 	
 	public String getSign_type() {
 		return sign_type;
@@ -209,6 +214,18 @@ public class HtfEntity {
 	}
 	public void setFund_acco_no(String fund_acco_no) {
 		this.fund_acco_no = fund_acco_no;
+	}
+	public String getTotal_fee() {
+		return total_fee;
+	}
+	public void setTotal_fee(String total_fee) {
+		this.total_fee = total_fee;
+	}
+	public int getFee_type() {
+		return fee_type;
+	}
+	public void setFee_type(int fee_type) {
+		this.fee_type = fee_type;
 	}
 	
 }

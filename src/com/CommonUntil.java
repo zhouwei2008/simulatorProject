@@ -64,12 +64,29 @@ public class CommonUntil {
         failDate.setTime(two);
         return (Math.abs(sysDate.getTimeInMillis() - failDate.getTimeInMillis())) / 1000;
     }
+    
+	/**
+	 * Title: getAfterDay<br/> 
+	 * Description:获取当前时间的后一天时间<br/> 
+	 * Company: gigold<br/> 
+	 *@author: zhouyong-pc
+	 *@date : 2016-1-5 下午2:01:47
+	 *@parameter:
+		 **/
+	public Date getAfterDay(Date date){  
+    	Calendar cl = Calendar.getInstance();   
+    	cl.setTime(date);
+    	cl.add(Calendar.DAY_OF_MONTH, 1);
+        Date day=cl.getTime();
+        return day;
+    }  
    
    public static void main(String[] args) throws ParseException {
 	   Date one = new SimpleDateFormat("yyyyMMddHHmmss").parse("20151231152735");
 	   Date two = new SimpleDateFormat("yyyyMMddHHmmss").parse("20151231152845");
 	   CommonUntil cu= new CommonUntil();
 	   System.out.println(cu.getDiffSeconds(one,two));
+	   System.out.println(new SimpleDateFormat("yyyyMMdd").format(cu.getAfterDay(new Date())));
    }
    
 }

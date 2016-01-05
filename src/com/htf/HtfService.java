@@ -243,6 +243,125 @@ public class HtfService {
 		return respMap;
 	}
 	
+	
+	/**
+	 * Title: getHtfCharge<br/> 
+	 * Description:申购接口 <br/> 
+	 * Company: gigold<br/> 
+	 *@author: zhouyong-pc
+	 *@date : 2016-1-5 下午1:42:44
+	 *@parameter:
+	**/
+	public Map<String, String> getHtfCharge(Map<String, String> submitFromData) {
+		CommonUntil commonUntil = new CommonUntil();
+
+		Map<String, String> respMap = new HashMap<String, String>();
+		respMap=getMap();
+		
+		respMap.put("sp_partner", submitFromData.get("sp_partner"));
+		
+		respMap.put("partner_acco_no", submitFromData.get("partner_acco_no"));
+		
+		respMap.put("transaction_id", submitFromData.get("transaction_id"));
+		
+		respMap.put("order_type", submitFromData.get("order_type"));
+		
+		respMap.put("total_fee", submitFromData.get("total_fee"));
+		
+		respMap.put("fee_type", submitFromData.get("fee_type")==null?"1":submitFromData.get("fee_type"));
+		
+		respMap.put("tran_time", new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+		
+		respMap.put("time_end", new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()));
+		
+		respMap.put("fund_date", new SimpleDateFormat("yyyyMMdd").format(new Date()));
+		//计息起始日
+		respMap.put("profit_date", new SimpleDateFormat("yyyyMMdd").format(commonUntil.getAfterDay(new Date())));
+		//总资产
+		respMap.put("fund_balance", "888888");
+		//当日充值金额
+		respMap.put("today_fund_units", "8888");
+		//当日可快取余额
+		respMap.put("today_fund_units_T0", "6666");
+		
+		String type ="04";
+		try {
+			respMap=validationRequestDeposit(submitFromData,respMap,type);
+			if(respMap.get("retCode")!=null){
+				respMap.put("confirm_status", "2");
+				respMap.put("confirm_msg", "系统异常的原因导致处理失败");
+				return respMap;
+			}
+			//非法IP
+			String errIp = commonUntil.getProperties("ERR_IP");
+			if(errIp.equals(submitFromData.get("spbill_create_ip"))){
+				respMap.put("confirm_status", "2");
+				respMap.put("confirm_msg", "系统异常的原因导致处理失败");
+				
+				respMap.put("retCode", HtfReturnEnum.IPFREEZE.getSysCode());
+				
+				respMap.put("retmsg", HtfReturnEnum.IPFREEZE.getResDesc());
+				
+				return respMap;
+			}
+			//银行卡未登记
+			String bankCard = commonUntil.getProperties("ERR_BANK_CARD");
+			if(bankCard.equals(submitFromData.get("bank_acco"))){
+				respMap.put("confirm_status", "2");
+				respMap.put("confirm_msg", "系统异常的原因导致处理失败");
+				
+				respMap.put("retCode", HtfReturnEnum.BANKCARDNOTHAVE.getSysCode());
+				
+				respMap.put("retmsg", HtfReturnEnum.BANKCARDNOTHAVE.getResDesc());
+				
+				return respMap;
+			}
+			//账户被冻结
+			String freezeAcc= commonUntil.getProperties("FREEZE_ACC");
+			if(freezeAcc.equals(submitFromData.get("partner_acco_no"))){
+				respMap.put("confirm_status", "1");
+				respMap.put("confirm_msg", "用户账户被冻结，处理失败");
+				
+				respMap.put("retCode", HtfReturnEnum.ACCFREEZE.getSysCode());
+				
+				respMap.put("retmsg", HtfReturnEnum.ACCFREEZE.getResDesc());
+				
+				return respMap;
+			}
+			
+			//金额过小
+			String money= submitFromData.get("total_fee");
+			if(Double.parseDouble(money)<0.01){
+				
+				respMap.put("confirm_status", "2");
+				respMap.put("confirm_msg", "系统异常的原因导致处理失败");
+				
+				respMap.put("retCode", HtfReturnEnum.NOTENOUGHCOUNT.getSysCode());
+				
+				respMap.put("retmsg", HtfReturnEnum.NOTENOUGHCOUNT.getResDesc());
+				
+				return respMap;
+			}
+			
+			respMap.put("confirm_status", "0");
+			
+			respMap.put("retCode", HtfReturnEnum.SUCCESS.getSysCode());
+			
+			respMap.put("retmsg", HtfReturnEnum.SUCCESS.getResDesc());
+			
+		} catch (Exception e) {		
+			respMap.put("confirm_status", "2");
+			respMap.put("confirm_msg", "系统异常的原因导致处理失败");
+			
+			respMap.put("retCode", HtfReturnEnum.FAILTRX.getSysCode());
+			
+			respMap.put("retmsg", HtfReturnEnum.FAILTRX.getResDesc());
+			
+			return respMap;
+		}
+		return respMap;
+	}
+	
 	/**
 	 * Title: getHtfRedeem<br/> 
 	 * Description:普通赎回接口(取现) <br/> 
@@ -323,7 +442,7 @@ public class HtfService {
 			
 			//金额过小
 			String money= submitFromData.get("fund_units");
-			if(Integer.parseInt(money)<0.01){
+			if(Double.parseDouble(money)<0.01){
 				respMap.put("trade_status", "1");
 				
 				respMap.put("retCode", HtfReturnEnum.MINWITHDRAWMONEYERR.getSysCode());
@@ -333,7 +452,7 @@ public class HtfService {
 				return respMap;
 			}
 			//金额过大
-			if(Integer.parseInt(money)>999999){
+			if(Double.parseDouble(money)>999999){
 				respMap.put("trade_status", "1");
 				
 				respMap.put("retCode", HtfReturnEnum.MAXWITHDRAWCOUNTERR.getSysCode());
@@ -452,7 +571,7 @@ public class HtfService {
 			
 			//金额过小
 			String money= submitFromData.get("fund_units");
-			if(Integer.parseInt(money)<0.01){
+			if(Double.parseDouble(money)<0.01){
 				respMap.put("trade_status", "1");
 				respMap.put("trade_msg", "失败");
 				
@@ -463,7 +582,7 @@ public class HtfService {
 				return respMap;
 			}
 			//金额过大
-			if(Integer.parseInt(money)>999999){
+			if(Double.parseDouble(money)>999999){
 				respMap.put("trade_status", "1");
 				respMap.put("trade_msg", "失败");
 				
@@ -594,7 +713,7 @@ public class HtfService {
 				respMap.put("retMsg", res.getRespCode()+"[spbill_create_ip]");
 	    		return respMap;
 	    	}
-			if(!("05".equals(type) || "06".equals(type) || "07".equals(type))){
+			if(!("04".equals(type) || "05".equals(type) || "06".equals(type) || "07".equals(type))){
 				String buyer_name=submitFromData.get("buyer_name");
 				res=Clazz.Annotation(HtfEntity.class, "buyer_name", buyer_name);
 				if(!"00000".equals(res.getRespCode())){
@@ -716,7 +835,7 @@ public class HtfService {
 		    		return respMap;
 		    	}
 			}
-			if("02".equals(type) || "05".equals(type) || "06".equals(type)){
+			if("02".equals(type) || "04".equals(type) || "05".equals(type) || "06".equals(type)){
 				String fund_acco_no=submitFromData.get("fund_acco_no");
 				res=Clazz.Annotation(HtfEntity.class, "fund_acco_no", fund_acco_no);
 				if(!"00000".equals(res.getRespCode())){
@@ -730,7 +849,7 @@ public class HtfService {
 				}
 				
 			}
-			if("05".equals(type) || "06".equals(type) || "07".equals(type)){
+			if("04".equals(type) ||"05".equals(type) || "06".equals(type) || "07".equals(type)){
 				if(!"07".equals(type)){
 					String fund_no=submitFromData.get("fund_no");
 					res=Clazz.Annotation(HtfEntity.class, "fund_no", fund_no);
@@ -743,16 +862,30 @@ public class HtfService {
 						respMap.put("retMsg", res.getRespCode()+"[fund_no]");
 						return respMap;
 					}
-					String fund_units=submitFromData.get("fund_units");
-					res=Clazz.Annotation(HtfEntity.class, "fund_units", fund_units);
-					if(!"00000".equals(res.getRespCode())){
-						if("F0029".equals(res.getRespCode())){
-							respMap.put("retCode", HtfReturnEnum.LOSTPARAM.getResCode());
-						}else{
-							respMap.put("retCode", HtfReturnEnum.ERRFORMAT.getResCode());
+					if(!"04".equals(type)){
+						String fund_units=submitFromData.get("fund_units");
+						res=Clazz.Annotation(HtfEntity.class, "fund_units", fund_units);
+						if(!"00000".equals(res.getRespCode())){
+							if("F0029".equals(res.getRespCode())){
+								respMap.put("retCode", HtfReturnEnum.LOSTPARAM.getResCode());
+							}else{
+								respMap.put("retCode", HtfReturnEnum.ERRFORMAT.getResCode());
+							}
+							respMap.put("retMsg", res.getRespCode()+"[fund_units]");
+							return respMap;
 						}
-						respMap.put("retMsg", res.getRespCode()+"[fund_units]");
-						return respMap;
+					}else{
+						String total_fee=submitFromData.get("total_fee");
+						res=Clazz.Annotation(HtfEntity.class, "total_fee", total_fee);
+						if(!"00000".equals(res.getRespCode())){
+							if("F0029".equals(res.getRespCode())){
+								respMap.put("retCode", HtfReturnEnum.LOSTPARAM.getResCode());
+							}else{
+								respMap.put("retCode", HtfReturnEnum.ERRFORMAT.getResCode());
+							}
+							respMap.put("retMsg", res.getRespCode()+"[total_fee]");
+							return respMap;
+						}
 					}
 				}
 				String order_type=submitFromData.get("order_type");
